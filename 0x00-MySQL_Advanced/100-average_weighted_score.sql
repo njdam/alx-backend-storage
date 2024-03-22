@@ -1,15 +1,12 @@
---SQL script that creates a stored procedure ComputeAverageWeightedScoreForUser
+-- SQL script that creates a stored procedure ComputeAverageWeightedScoreForUser
 --	that computes and store the average weighted score for a student.
-
 -- Requirements:
 --	Procedure ComputeAverageScoreForUser is taking 1 input:
 --		user_id, a users.id value
 --		(you can assume user_id is linked to an existing users)
-
 -- Tips:
 --	[Calculate-Weighted-Average]
 --	(https://intranet.alxswe.com/rltoken/QHx92mlF43zF6GTEil-Cyw)
-
 DROP PROCEDURE IF EXISTS ComputeAverageWeightedScoreForUser;
 DELIMITER $$
 CREATE PROCEDURE ComputeAverageWeightedScoreForUser (user_id INT)
