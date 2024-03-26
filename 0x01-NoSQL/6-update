@@ -1,0 +1,13 @@
+// A script that adds a new attribute to a document in the collection school
+// The database name will be passed as option of mongo command
+db.school.updateMany(
+  { name: "Holberton school" },
+  { "$set": { address: "972 Mission street" } }
+);
+
+// or this below by `update` only
+// db.school.update(
+//   { name: "Holberton school" },
+//   { "$set": { address: "972 Mission street" } },
+//   { multi: true }
+// );
