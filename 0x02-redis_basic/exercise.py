@@ -3,7 +3,38 @@
 
 import redis
 import uuid
-from typing import Union, Callable
+from typing import Union, Callable, Any
+from functools import wraps
+
+
+def count_calls(method: Callable) -> Callable:
+    """
+    Implementation of a system to count how many times methods
+    of the Cache class are called.
+
+    Above Cache to define a count_calls decorator that takes a single
+    `method` `Callable` argument and returns a `Callable`.
+
+    As a key, use the qualified name of method using the `__qualname__`
+    dunder method.
+
+    Create and return function that increments the count for that `key`
+    every time the method is called and returns the value returned
+    by the original method.
+
+    Remember that the first argument of the wrapped function will be `self`
+    which is the instance itself, which lets you access the Redis instance.
+
+    Protip: when defining a decorator it is useful to use `functool.wraps`
+    to conserve the original function’s name, docstring, etc.
+    """
+    @wraps(method)
+    def wrapper(self, *args, **kwargs) -> Any:
+        key = method.__qualname__
+        if isinstance(self._redis, redis.Redis):
+            self._redis.incr(key)
+        return method(self, *args, **kwargs)
+    return wrapper
 
 
 class Cache:
@@ -24,6 +55,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()  # Clear the Redis database
 
+    @count_calls  # Decorate Cache.store with count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         rand_key = str(uuid.uuid4())  # To Generate a random key
         self._redis.set(rand_key, data)  # To store data in Redis
