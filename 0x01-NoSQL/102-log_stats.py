@@ -61,14 +61,14 @@ def log_stats():
     ip_stats = collection.aggregate([
             {
                 "$group": {"_id": "$ip", "count": {"$sum": 1}}
-                },
+            },
             {
                 "$sort": {"count": -1}
-                },
+            },
             {
                 "$limit": 10
-                }
-            ])
+            }
+        ])
     print("IPs:")
     for ip_stat in ip_stats:
         print(f"\t{ip_stat['_id']}: {ip_stat['count']}")
