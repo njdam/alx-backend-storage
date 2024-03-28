@@ -9,6 +9,8 @@ from functools import wraps
 
 def count_calls(method: Callable) -> Callable:
     """
+    Familiarize yourself with the `INCR` command and its python equivalent.
+
     Implementation of a system to count how many times methods
     of the Cache class are called.
 
@@ -37,6 +39,49 @@ def count_calls(method: Callable) -> Callable:
     return wrapper
 
 
+def call_history(method: Callable) -> Callable:
+    """
+    Familiarize yourself with redis commands `RPUSH`, `LPUSH`, `LRANGE`, etc
+
+    In this task, we will define a `call_history` decorator to store
+    the history of inputs and outputs for a particular function.
+
+    Everytime the original function will be called, we will add its input
+    parameters to one list in redis, and store its output into another list.
+
+    In `call_history`, use the decorated function’s qualified name
+    and append `":inputs"` and `":outputs"` to create input and output
+    list keys, respectively.
+
+    `call_history` has a single parameter named method that is a `Callable`
+    and returns a `Callable`.
+
+    In the new function that the decorator will return, use `rpush`
+    to append the input arguments. Remember that Redis can only store
+    strings, bytes and numbers. Therefore, we can simply use `str(args)`
+    to normalize. We can ignore potential `kwargs` for now.
+
+    Execute the wrapped function to retrieve the output. Store the output
+    using `rpush` in the `"...:outputs"` list, then return the `output`.
+    """
+    @wraps(method)
+    def wrapper(self, *args, **kwargs) -> Any:
+        input_key = method.__qualname__ + ":inputs"
+        output_key = method.__qualname__ + ":outputs"
+
+        # Append input arguments to the inputs list
+        self._redis.rpush(input_key, str(args))
+
+        # Execute the wrapped function to retrieve the output
+        output = method(self, *args, **kwargs)
+
+        # Store the output in the outputs list
+        self._redis.rpush(output_key, str(output))
+
+        return output
+    return wrapper
+
+
 class Cache:
     """
     A Cache class with `__init__` method, store an instance of the Redis
@@ -55,6 +100,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()  # Clear the Redis database
 
+    @call_history  # Decorate Cache.store with call_history
     @count_calls  # Decorate Cache.store with count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         rand_key = str(uuid.uuid4())  # To Generate a random key
