@@ -34,6 +34,8 @@ def data_cacher(func: Callable) -> Callable:
         # Call the original function
         result = func(url)
 
+        redis_client.set(f'count:{url}', 0)
+
         # Cache the result with expiration time of 10 seconds
         redis_client.setex(f'result:{url}', 10, result)
 
@@ -47,28 +49,4 @@ def get_page(url: str) -> str:
     Returns the content of a URL after caching the request's response,
     and tracking the request.
     """
-    response = requests.get(url)
-    return response.text
-
-
-# Function to clean up expired cache entries and update access count
-def clean_up_cache():
-    while True:
-        # Get all keys matching 'result:*'
-        keys = redis_client.keys('result:*')
-        for key in keys:
-            # Check if key has expired
-            if not redis_client.ttl(key):
-                # Extract URL from key
-                url = key.decode('utf-8').split(':', 1)[1]
-                # Decrement access count for the URL
-                redis_client.decr(f'count:{url}')
-                # Remove cache entry
-                redis_client.delete(key)
-        # Sleep for 1 second before next iteration
-        time.sleep(1)
-
-
-# Start a separate thread to clean up cache
-cleanup_thread = threading.Thread(target=clean_up_cache)
-cleanup_thread.start()
+    return requests.get(url).text
