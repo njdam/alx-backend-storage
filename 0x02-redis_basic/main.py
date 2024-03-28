@@ -6,6 +6,7 @@ import redis
 
 Cache = __import__('exercise').Cache
 replay = __import__('exercise').replay
+get_page = __import__('web').get_page
 
 cache = Cache()
 
@@ -52,3 +53,11 @@ cache.store("bar")
 cache.store(42)
 
 replay(cache.store)
+
+# Advanced Tasks
+print("--------------------------------------------------------------")
+print("Advanced Tasks")
+# Test the get_page function
+url = "http://slowwly.robertomurray.co.uk/delay/10000/url/http://www.example.com"
+content = get_page(url)
+print(content)
