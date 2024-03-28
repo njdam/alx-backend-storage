@@ -70,15 +70,17 @@ def call_history(method: Callable) -> Callable:
         output_key = method.__qualname__ + ":outputs"
 
         # Append input arguments to the inputs list
-        self._redis.rpush(input_key, str(args))
+        if isinstance(self._redis, redis.Redis):
+            self._redis.rpush(input_key, str(args))
 
         # Execute the wrapped function to retrieve the output
         output = method(self, *args, **kwargs)
 
         # Store the output in the outputs list
-        self._redis.rpush(output_key, str(output))
-
+        if isinstance(self._redis, redis.Redis):
+            self._redis.rpush(output_key, str(output))
         return output
+
     return wrapper
 
 
