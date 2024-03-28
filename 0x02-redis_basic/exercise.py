@@ -82,6 +82,36 @@ def call_history(method: Callable) -> Callable:
     return wrapper
 
 
+def replay(fn: Callable) -> None:
+    """
+    """
+    if fn is None or not hasattr(fn, '__self__'):
+        return
+    redis_client = getattr(fn.__self__, '_redis', None)
+    if not isinstance(redis_client, redis.Redis):
+        return
+    fxn_name = fn.__qualname__  # or method name
+    input_key = fxn_name + ":inputs"
+    output_key = fxn_name + ":outputs"
+
+    fxn_call_count = 0
+    if redis_client.exists(fxn_name) != 0:
+        fxn_call_count = int(redis_client.get(fxn_name))
+
+    inputs = redis_client.lrange(input_key, 0, -1)
+    outputs = redis_client.lrange(output_key, 0, -1)
+
+    # fxn_call_count or {len(inputs)}
+    print('{} was called {} times:'.format(fxn_name, fxn_call_count))
+
+    for input_args, output in zip(inputs, outputs):
+        print("{}(*{}) -> {}".format(
+            fxn_name,
+            input_args.decode('utf-8'),
+            output.decode('utf-8'),
+        ))
+
+
 class Cache:
     """
     A Cache class with `__init__` method, store an instance of the Redis
