@@ -3,6 +3,7 @@
 Main file
 """
 import redis
+import time
 
 Cache = __import__('exercise').Cache
 replay = __import__('exercise').replay
@@ -92,9 +93,21 @@ print("")
 # Call get_page function
 content = get_page(url)
 print(f"Content retrieved for {url}:\n{content}")
+
+print("--------------------------------------------------------------")
+url = "http://google.com"
+# Access the page multiple times
+for _ in range(3):
+    content = get_page(url)
+    print(f"Content retrieved for {url}:\n{content}")
+
+# Sleep for 11 seconds to allow cache to expire
+time.sleep(11)
+
+# Access the page again to check if cache has been removed
 content = get_page(url)
-content = get_page(url)
-content = get_page(url)
+print(f"Content retrieved for {url} after cache expiration:\n{content}")
+print("--------------------------------------------------------------")
 
 # Access count after calling get_page
 updated_count = local_redis.get(f"count:{url}")

@@ -7,6 +7,7 @@ import redis
 import requests
 from functools import wraps
 from typing import Callable
+import threading
 
 
 # Redis client
@@ -48,3 +49,26 @@ def get_page(url: str) -> str:
     """
     response = requests.get(url)
     return response.text
+
+
+# Function to clean up expired cache entries and update access count
+def clean_up_cache():
+    while True:
+        # Get all keys matching 'result:*'
+        keys = redis_client.keys('result:*')
+        for key in keys:
+            # Check if key has expired
+            if not redis_client.ttl(key):
+                # Extract URL from key
+                url = key.decode('utf-8').split(':', 1)[1]
+                # Decrement access count for the URL
+                redis_client.decr(f'count:{url}')
+                # Remove cache entry
+                redis_client.delete(key)
+        # Sleep for 1 second before next iteration
+        time.sleep(1)
+
+
+# Start a separate thread to clean up cache
+cleanup_thread = threading.Thread(target=clean_up_cache)
+cleanup_thread.start()
